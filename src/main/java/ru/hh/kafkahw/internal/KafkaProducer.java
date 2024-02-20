@@ -17,14 +17,36 @@ public class KafkaProducer {
     this.kafkaTemplate = kafkaTemplate;
   }
 
+  /*
+  Для семантик AtLeastOnce и ExactlyOnce проблема была в том, что исключения
+  иогли прервать отправку сообщения. Теперь мы повторяем отправку сообщения
+  до того момента, пока оно не будет отправлено
+  */
   public void send(String topic, String payload) {
-    if (random.nextInt(100) < 10) {
-      throw new RuntimeException();
+    boolean isSent = false;
+    while (!isSent) {
+      isSent = trySend(topic, payload);
     }
-    LOGGER.info("send to kafka, topic {}, payload {}", topic, payload);
-    kafkaTemplate.send(topic, payload);
-    if (random.nextInt(100) < 2) {
-      throw new RuntimeException();
+  }
+
+  /*
+    Добавила метод, которые пытается отправить сообщение. Исключение, возникющее до отправки
+    сообщения, мешало реализации семантик.
+    */
+  public boolean trySend(String topic, String payload) {
+    boolean isSent = false;
+    try {
+      if (random.nextInt(100) < 10) {
+        throw new RuntimeException();
+      }
+      LOGGER.info("send to kafka, topic {}, payload {}", topic, payload);
+      kafkaTemplate.send(topic, payload);
+      isSent = true;
+      if (random.nextInt(100) < 2) {
+        throw new RuntimeException();
+      }
+    } catch (Exception e) {
     }
+    return isSent;
   }
 }
