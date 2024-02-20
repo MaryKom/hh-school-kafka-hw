@@ -50,7 +50,7 @@ public class TopicListener {
   }
 
   /*
-  Для реализации exactly once было добавлено множество обработанных сообщений
+  Для реализации exactly once было добавлено множество с хэшами обработанных сообщений
    */
   @KafkaListener(topics = "topic3", groupId = "group3")
   public void exactlyOnce(ConsumerRecord<?, String> consumerRecord, Acknowledgment ack) {
